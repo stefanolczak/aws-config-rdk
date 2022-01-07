@@ -9,6 +9,7 @@
 import concurrent.futures
 import copy
 import six
+from typing import List
 
 if six.PY2:
     import rdk
@@ -17,7 +18,6 @@ else:
 
 
 def main():
-    # Set up command-line argument parser and parse the args.
 
     my_parser = rdk.get_command_parser()
     args = my_parser.parse_args()

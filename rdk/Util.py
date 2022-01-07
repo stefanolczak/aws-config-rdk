@@ -25,7 +25,7 @@ from rdk import (
 )
 
 
-class util:
+class Util:
     @staticmethod
     def generate_terraform_shell(args):
         return ""
@@ -40,7 +40,7 @@ class util:
 
     @staticmethod
     def remove_ruleset_rule(ruleset, rulename, args):
-        params, tags = util.get_rule_parameters(rulename)
+        params, tags = Util.get_rule_parameters(rulename)
         if "RuleSets" in params:
             if args.ruleset in params["RuleSets"]:
                 params["RuleSets"].remove(args.ruleset)
@@ -49,13 +49,13 @@ class util:
         else:
             print("Rule " + rulename + " is not in any RuleSets")
 
-        util.write_params_file(rulename, params, tags)
+        Util.write_params_file(rulename, params, tags)
 
         print(rulename + " removed from RuleSet " + ruleset)
 
     @staticmethod
     def add_ruleset_rule(ruleset, rulename, args):
-        params, tags = util.get_rule_parameters(rulename)
+        params, tags = Util.get_rule_parameters(rulename)
         if "RuleSets" in params:
             if args.ruleset in params["RuleSets"]:
                 print("Rule is already in the specified RuleSet.")
@@ -65,7 +65,7 @@ class util:
             rulesets = [args.ruleset]
             params["RuleSets"] = rulesets
 
-        util.write_params_file(rulename, params, tags)
+        Util.write_params_file(rulename, params, tags)
 
         print(rulename + " added to RuleSet " + ruleset)
 
@@ -184,7 +184,7 @@ class util:
         for stream in log_streams["logStreams"]:
             # Retrieve the logs for this stream.
             events = my_client.get_log_events(
-                logGroupName=util.get_log_group_name(),
+                logGroupName=Util.get_log_group_name(),
                 logStreamName=stream["logStreamName"],
                 limit=int(number_of_events),
             )
@@ -202,9 +202,9 @@ class util:
 
     @staticmethod
     def get_log_group_name(args):
-        params, cfn_tags = util.get_rule_parameters(args.rulename)
+        params, cfn_tags = Util.get_rule_parameters(args.rulename)
 
-        return "/aws/lambda/" + util.get_lambda_name(args.rulename, params)
+        return "/aws/lambda/" + Util.get_lambda_name(args.rulename, params)
 
     @staticmethod
     def get_boto_session(args):
@@ -287,7 +287,7 @@ class util:
                             rule_names.append(obj_name)
         elif args.rulename:
             for rule_name in args.rulename:
-                cleaned_rule_name = util.clean_rule_name(rule_name)
+                cleaned_rule_name = Util.clean_rule_name(rule_name)
                 if os.path.isdir(cleaned_rule_name):
                     rule_names.append(cleaned_rule_name)
         else:
@@ -385,7 +385,7 @@ class util:
 
             # Remove old zip file if it already exists
             package_file_dst = os.path.join(rule_name, rule_name + ".zip")
-            util.delete_package_file(package_file_dst)
+            Util.delete_package_file(package_file_dst)
 
             # Create new package in temp directory, copy to rule directory
             # This copy avoids the archiver trying to include the output zip in itself
@@ -406,13 +406,13 @@ class util:
             if not (os.path.exists(package_file_dst)):
                 shutil.copy(tmp_src, package_file_dst)
             s3_src = os.path.abspath(package_file_dst)
-            util.delete_package_file(tmp_src)
+            Util.delete_package_file(tmp_src)
 
         else:
             print("Zipping " + rule_name)
             # Remove old zip file if it already exists
             package_file_dst = os.path.join(rule_name, rule_name + ".zip")
-            util.delete_package_file(package_file_dst)
+            Util.delete_package_file(package_file_dst)
 
             # zip rule code files and upload to s3 bucket
             s3_src_dir = os.path.join(os.getcwd(), RULES_DIR, rule_name)
@@ -424,7 +424,7 @@ class util:
             if not (os.path.exists(package_file_dst)):
                 shutil.copy(tmp_src, package_file_dst)
             s3_src = os.path.abspath(package_file_dst)
-            util.delete_package_file(tmp_src)
+            Util.delete_package_file(tmp_src)
 
         s3_dst = "/".join((rule_name, rule_name + ".zip"))
 
@@ -434,7 +434,7 @@ class util:
 
     @staticmethod
     def populate_params(args):
-        my_session = util.get_boto_session(args)
+        my_session = Util.get_boto_session(args)
 
         my_input_params = {}
 
@@ -489,7 +489,7 @@ class util:
 
         if args.remediation_action:
             try:
-                my_remediation = util.generate_remediation_params()
+                my_remediation = Util.generate_remediation_params()
             except Exception as e:
                 print("Error parsing remediation configuration.")
 
@@ -526,7 +526,7 @@ class util:
         if my_remediation:
             parameters["Remediation"] = my_remediation
 
-        util.write_params_file(args.rulename, parameters, tags)
+        Util.write_params_file(args.rulename, parameters, tags)
 
     @staticmethod
     def generate_remediation_params(args):
@@ -576,7 +576,7 @@ class util:
 
     @staticmethod
     def wait_for_cfn_stack(cfn_client, stackname, args):
-        my_session = util.get_boto_session(args)
+        my_session = Util.get_boto_session(args)
         in_progress = True
         while in_progress:
             my_stacks = []
@@ -673,7 +673,7 @@ class util:
             #    test_ci_list _load_cis_from_file(tests_path)
             else:
                 print("\tTesting with generic CI for configured Resource Type(s)")
-                my_rule_params, my_rule_tags = util.get_rule_parameters(rulename)
+                my_rule_params, my_rule_tags = Util.get_rule_parameters(rulename)
                 ci_types = str(my_rule_params["SourceEvents"]).split(",")
                 for ci_type in ci_types:
                     my_test_ci = TestCI(ci_type)
@@ -684,12 +684,12 @@ class util:
     @staticmethod
     def get_lambda_arn_for_stack(stack_name, args):
         # create custom session based on whatever credentials are available to us
-        my_session = util.get_boto_session(args)
+        my_session = Util.get_boto_session(args)
 
         my_cfn = my_session.client("cloudformation")
 
         # Since CFN won't detect changes to the lambda code stored in S3 as a reason to update the stack, we need to manually update the code reference in Lambda once the CFN has run.
-        util.wait_for_cfn_stack(my_cfn, stack_name)
+        Util.wait_for_cfn_stack(my_cfn, stack_name)
 
         # Lambda function is an output of the stack.
         my_updated_stack = my_cfn.describe_stacks(StackName=stack_name)
@@ -718,7 +718,7 @@ class util:
                 sys.exit(1)
             return lambda_name
         else:
-            lambda_name = "RDK-Rule-Function-" + util.get_stack_name_from_rule_name(rule_name)
+            lambda_name = "RDK-Rule-Function-" + Util.get_stack_name_from_rule_name(rule_name)
             if len(lambda_name) > 64:
                 print(
                     "Error: Found Rule's Lambda function with name over 64 characters: {} \n Recreate the rule with a shorter name or with CustomLambdaName attribute in parameter.json. If you are using 'rdk create', you can add '--custom-lambda-name <your lambda name>' to create your RDK rules".format(
@@ -731,7 +731,7 @@ class util:
     @staticmethod
     def get_lambda_arn_for_rule(rule_name, partition, region, account, params):
         return "arn:{}:lambda:{}:{}:function:{}".format(
-            partition, region, account, util.get_lambda_name(rule_name, params)
+            partition, region, account, Util.get_lambda_name(rule_name, params)
         )
 
     @staticmethod
@@ -783,7 +783,7 @@ class util:
 
             # Remove old zip file if it already exists
             package_file_dst = os.path.join(rule_name, rule_name + ".zip")
-            util.delete_package_file(package_file_dst)
+            Util.delete_package_file(package_file_dst)
 
             # Create new package in temp directory, copy to rule directory
             # This copy avoids the archiver trying to include the output zip in itself
@@ -810,13 +810,13 @@ class util:
             print(f"[{session.region_name}]: Upload complete.")
             if not (os.path.exists(package_file_dst)):
                 shutil.copy(tmp_src, package_file_dst)
-            util.delete_package_file(tmp_src)
+            Util.delete_package_file(tmp_src)
 
         else:
             print(f"[{session.region_name}]: Zipping " + rule_name)
             # Remove old zip file if it already exists
             package_file_dst = os.path.join(rule_name, rule_name + ".zip")
-            util.delete_package_file(package_file_dst)
+            Util.delete_package_file(package_file_dst)
 
             # zip rule code files and upload to s3 bucket
             s3_src_dir = os.path.join(os.getcwd(), RULES_DIR, rule_name)
@@ -836,7 +836,7 @@ class util:
             print(f"[{session.region_name}]: Upload complete.")
             if not (os.path.exists(package_file_dst)):
                 shutil.copy(tmp_src, package_file_dst)
-            util.delete_package_file(tmp_src)
+            Util.delete_package_file(tmp_src)
 
         return s3_dst
 
@@ -912,7 +912,7 @@ class util:
                     "Version": "2012-10-17",
                 },
                 "PolicyName": {"Fn::Sub": "" + rule_name + "-Remediation-Policy-${AWS::Region}"},
-                "Roles": [{"Ref": util.get_alphanumeric_rule_name(rule_name + "Role")}],
+                "Roles": [{"Ref": Util.get_alphanumeric_rule_name(rule_name + "Role")}],
             },
         }
 
@@ -920,7 +920,7 @@ class util:
 
     @staticmethod
     def create_function_cloudformation_template(args):
-        my_session = util.get_boto_session(args)
+        my_session = Util.get_boto_session(args)
         print("Generating CloudFormation template for Lambda Functions!")
 
         # First add the common elements - description, parameters, and resource section header
@@ -1023,10 +1023,10 @@ class util:
             ]
             resources["rdkLambdaRole"] = lambda_role
 
-        rule_names = util.get_rule_list_for_command()
+        rule_names = Util.get_rule_list_for_command()
         for rule_name in rule_names:
-            alphanum_rule_name = util.get_alphanumeric_rule_name(rule_name)
-            params, tags = util.get_rule_parameters(rule_name)
+            alphanum_rule_name = Util.get_alphanumeric_rule_name(rule_name)
+            params, tags = Util.get_rule_parameters(rule_name)
 
             if "SourceIdentifier" in params:
                 print("Skipping Managed Rule.")
@@ -1035,20 +1035,20 @@ class util:
             lambda_function = {}
             lambda_function["Type"] = "AWS::Lambda::Function"
             properties = {}
-            properties["FunctionName"] = util.get_lambda_name(rule_name, params)
+            properties["FunctionName"] = Util.get_lambda_name(rule_name, params)
             properties["Code"] = {
                 "S3Bucket": {"Ref": "SourceBucket"},
                 "S3Key": rule_name + "/" + rule_name + ".zip",
             }
             properties["Description"] = "Function for AWS Config Rule " + rule_name
-            properties["Handler"] = util.get_handler(rule_name, params)
+            properties["Handler"] = Util.get_handler(rule_name, params)
             properties["MemorySize"] = "256"
             if args.lambda_role_arn or args.lambda_role_name:
                 properties["Role"] = args.lambda_role_arn
             else:
                 lambda_function["DependsOn"] = "rdkLambdaRole"
                 properties["Role"] = {"Fn::GetAtt": ["rdkLambdaRole", "Arn"]}
-            properties["Runtime"] = util.get_runtime_string(params)
+            properties["Runtime"] = Util.get_runtime_string(params)
             properties["Timeout"] = str(args.lambda_timeout)
             properties["Tags"] = tags
             if args.lambda_subnets and args.lambda_security_groups:
@@ -1084,7 +1084,7 @@ class util:
 
     @staticmethod
     def tag_config_rule(rule_name, cfn_tags, args):
-        my_session = util.get_boto_session(args)
+        my_session = Util.get_boto_session(args)
         config_client = my_session.client("config")
         config_arn = config_client.describe_config_rules(ConfigRuleNames=[rule_name])["ConfigRules"][0]["ConfigRuleArn"]
         response = config_client.tag_resource(ResourceArn=config_arn, Tags=cfn_tags)
@@ -1100,13 +1100,13 @@ class util:
                 "python3.8-lib",
             ]:
                 if args.generated_lambda_layer:
-                    lambda_layer_version = util.get_existing_lambda_layer(session, layer_name=args.custom_layer_name)
+                    lambda_layer_version = Util.get_existing_lambda_layer(session, layer_name=args.custom_layer_name)
                     if not lambda_layer_version:
                         print(
                             f"{session.region_name} --generated-lambda-layer flag received, but rdklib-layer not found in {session.region_name}. Creating one now"
                         )
-                        util.create_new_lambda_layer(session, layer_name=args.custom_layer_name)
-                        lambda_layer_version = util.get_existing_lambda_layer(
+                        Util.create_new_lambda_layer(session, layer_name=args.custom_layer_name)
+                        lambda_layer_version = Util.get_existing_lambda_layer(
                             session, layer_name=args.custom_layer_name
                         )
                     layers.append(lambda_layer_version)
@@ -1134,7 +1134,7 @@ class util:
 
         successful_return = None
         if layer_name == "rdklib-layer":
-            successful_return = util.create_new_lambda_layer_serverless_repo(session)
+            successful_return = Util.create_new_lambda_layer_serverless_repo(session)
 
         # If that doesn't work, create it locally and upload - SAR doesn't support the custom layer name
         if layer_name != "rdklib-layer" or not successful_return:
@@ -1146,7 +1146,7 @@ class util:
                 print(
                     f"[{session.region_name}]: Custom name layer not supported with Serverless Application Repository deployment, attempting manual deployment"
                 )
-            util.create_new_lambda_layer_locally(session, layer_name)
+            Util.create_new_lambda_layer_locally(session, layer_name)
 
     @staticmethod
     def create_new_lambda_layer_serverless_repo(session):
@@ -1167,7 +1167,7 @@ class util:
                 ApplicationId=RDKLIB_LAYER_SAR_ID, StackName="rdklib"
             )["ChangeSetId"]
             print(f"[{session.region_name}]: Creating change set to deploy rdklib-layer")
-            code = util.check_on_change_set(cfn_client, change_set_arn)
+            code = Util.check_on_change_set(cfn_client, change_set_arn)
             if code == 1:
                 print(
                     f"[{session.region_name}]: Lambda layer up to date with the Serverless Application Repository Version"

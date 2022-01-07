@@ -16,23 +16,25 @@ def readme():
         return f.read()
 
 
-setup(name='rdk',
-      version=MY_VERSION,
-      description='Rule Development Kit CLI for AWS Config',
-      long_description=readme(),
-      url='https://github.com/awslabs/aws-config-rdk/',
-      author='RDK mMintainers',
-      author_email='rdk-maintainers@amazon.com',
-      license='Apache License Version 2.0',
-      packages=['rdk'],
-      install_requires=[
-          'boto3',
-          'pyyaml',
-      ],
-      entry_points={
-              'console_scripts': [
-                  'rdk=rdk.cli:main',
-              ],
-            },
-      zip_safe=False,
-      include_package_data=True)
+setup(
+    name="rdk",
+    version=MY_VERSION,
+    description="Rule Development Kit CLI for AWS Config",
+    long_description=readme(),
+    url="https://github.com/awslabs/aws-config-rdk/",
+    author="RDK mMintainers",
+    author_email="rdk-maintainers@amazon.com",
+    license="Apache License Version 2.0",
+    packages=["rdk"],
+    install_requires=[
+        "boto3",
+        "pyyaml",
+    ],
+    entry_points={
+        "console_scripts": [
+            "rdk=rdk.cli:main",
+        ],
+    },
+    zip_safe=False,
+    include_package_data=True,
+)
