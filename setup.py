@@ -12,7 +12,7 @@ from rdk import MY_VERSION
 
 
 def readme():
-    with open('README.rst') as f:
+    with open("README.rst") as f:
         return f.read()
 
 
@@ -21,7 +21,7 @@ setup(name='rdk',
       description='Rule Development Kit CLI for AWS Config',
       long_description=readme(),
       url='https://github.com/awslabs/aws-config-rdk/',
-      author='RDK maintainer',
+      author='RDK mMintainers',
       author_email='rdk-maintainers@amazon.com',
       license='Apache License Version 2.0',
       packages=['rdk'],

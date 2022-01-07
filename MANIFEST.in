@@ -29,3 +29,4 @@ include rdk/template/runtime/dotnetcore2.0/obj/*
 include rdk/template/runtime/dotnetcore2.0/obj/Debug/*
 include rdk/template/runtime/dotnetcore2.0/obj/Release/netcoreapp1.0/*
 include rdk/template/runtime/dotnetcore2.0/obj/Release/netcoreapp2.0/*
+include rdk/commands/*
