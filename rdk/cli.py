@@ -27,8 +27,9 @@ def main():
         if args.command in ['init', 'deploy', 'undeploy', 'deploy-organization', 'undeploy-organization']:
             regions = rdk.parse_region_file(args)
             print(f"{args.command.capitalize()}ing rules in the following regions: {regions}.")
-            if args.command == 'undeploy' and "--force" not in args.command_args:
-                my_input = input("Delete specified Rules and Lambda Functions from your AWS Account? (y/N): ")
+            if (args.command == 'undeploy' or args.command == 'undeploy-organization') and "--force" not in args.command_args:
+                deletion_source = "AWS Account" if args.command == 'undeploy' else "Organization"
+                my_input = input(f"Delete specified Rules and Lambda Functions from your {deletion_source}? (y/N): ")
                 while my_input.lower() not in ["y", "n"]:
                     my_input = input(f"Invalid input: {my_input}. Please enter either 'y' or 'n': ")
                 if my_input.lower() == "y":
