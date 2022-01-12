@@ -24,7 +24,7 @@ def main():
     my_rdk = rdk.rdk(args)
 
     if args.region_file:
-        if args.command in ['init', 'deploy', 'undeploy']:
+        if args.command in ['init', 'deploy', 'undeploy', 'deploy-organization', 'undeploy-organization']:
             regions = rdk.parse_region_file(args)
             print(f"{args.command.capitalize()}ing rules in the following regions: {regions}.")
             if args.command == 'undeploy' and "--force" not in args.command_args:
