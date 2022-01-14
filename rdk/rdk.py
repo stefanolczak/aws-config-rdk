@@ -1087,7 +1087,7 @@ class rdk:
         #If we're only deploying the Lambda functions (and role + permissions), branch here.  Someday the "main" execution path should use the same generated CFN templates for single-account deployment.
         if self.args.functions_only:
             #Generate the template
-            function_template = self.__create_function_cloudformation_template()
+            function_template = self.__create_function_cloudformation_template(my_session)
 
             #Generate CFN parameter json
             cfn_params = [
@@ -1413,7 +1413,7 @@ class rdk:
                 lambdaRoleArn = self.args.lambda_role_arn
             elif self.args.lambda_role_name:
                 print (f"[{my_session.region_name}]: Finding IAM Role: " + self.args.lambda_role_name)
-                arn = f"arn:{partition}:iam::{account_id}:role/Rdk-Lambda-Role"
+                arn = f"arn:{partition}:iam::{account_id}:role/{self.args.lambda_role_name}"
                 lambdaRoleArn = arn
 
             if self.args.boundary_policy_arn:
@@ -1769,7 +1769,7 @@ class rdk:
                 lambdaRoleArn = self.args.lambda_role_arn
             elif self.args.lambda_role_name:
                 print (f"[{my_session.region_name}]: Finding IAM Role: " + self.args.lambda_role_name)
-                arn = f"arn:{partition}:iam::{account_id}:role/Rdk-Lambda-Role"
+                arn = f"arn:{partition}:iam::{account_id}:role/{self.args.lambda_role_name}"
                 lambdaRoleArn = arn
 
 
@@ -3452,7 +3452,7 @@ class rdk:
 
 
 
-    def __create_function_cloudformation_template(self):
+    def __create_function_cloudformation_template(self, my_session):
         print ("Generating CloudFormation template for Lambda Functions!")
 
         #First add the common elements - description, parameters, and resource section header
@@ -3471,8 +3471,14 @@ class rdk:
 
         resources = {}
 
+        identity_details = self.__get_caller_identity_details(my_session)
+        account_id = identity_details['account_id']
+        partition = identity_details['partition']
+
         if self.args.lambda_role_arn or self.args.lambda_role_name:
-            print ("Existing IAM role provided: " + self.args.lambda_role_arn)
+            print("Existing IAM role provided: " + self.args.lambda_role_arn)
+        elif self.args.lambda_role_name:
+            print("Existing IAM role provided: " + self.args.lambda_role_name)
         else:
             print ("No IAM role provided, creating a new IAM role for lambda function")
             lambda_role = {}
@@ -3575,8 +3581,10 @@ class rdk:
             properties["Description"] = "Function for AWS Config Rule " + rule_name
             properties["Handler"] = self.__get_handler(rule_name, params)
             properties["MemorySize"] = "256"
-            if self.args.lambda_role_arn or self.args.lambda_role_name:
+            if self.args.lambda_role_arn:
                 properties["Role"] = self.args.lambda_role_arn
+            elif self.args.lambda_role_name:
+                properties["Role"] = f"arn:{partition}:iam::{account_id}:role/{self.args.lambda_role_name}"
             else:
                 lambda_function["DependsOn"] = "rdkLambdaRole"
                 properties["Role"] = {"Fn::GetAtt": [ "rdkLambdaRole", "Arn" ]}
